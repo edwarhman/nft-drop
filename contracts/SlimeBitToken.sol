@@ -39,12 +39,24 @@ contract SlimeBitToken is ERC721, Ownable {
 	///cannot exceed the max mint amount permited by transaction
 	///@dev It rejects if doing the operation exceeds the maximum token amount
 	function mint(uint _mintAmount) public payable onlyOwner {
-		require(!paused);
-		require(_mintAmount > 0);
-		require(supply + _mintAmount <= maxSupply);
-		require(_mintAmount < maxMintAmountPerTx, "You cannot exceeds the max mint amount.");
+		require(!paused, "Drop is paused");
+		require(
+			_mintAmount > 0,
+			"You need to specify an amount of tokens to mint"
+		);
+		require(
+			supply + _mintAmount <= maxSupply,
+			"You cannot mint more tokens than the maximum supply expected"
+		);
+		require(
+			_mintAmount < maxMintAmountPerTx,
+			"You cannot exceeds the max mint amount."
+		);
 		if(msg.sender == owner()) {
-			require(msg.value >= cost * _mintAmount);
+			require(
+				msg.value >= cost * _mintAmount,
+				"You have to pay the token price"
+			);
 		}
 
 		for(uint i = 1; i <= _mintAmount; i++) {
