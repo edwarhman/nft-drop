@@ -61,6 +61,21 @@ describe('Slime Token Contract', ()=> {
         .be
         .revertedWith("You need to specify at least an amount of one token to mint");
       });
+      
+      it("Should not allow exceeding the maximum mint operations allowed per transaction", async ()=> {
+        await expect(token.mint(15))
+        .to
+        .be
+        .revertedWith("You cannot exceeds the max mint amount.");
+      });
+
+      it("Should require a payment of total mint tokens if sender is not the owner", async ()=> {
+        const mintCost = await token.cost();
+        await expect(token.connect(addr1).mint(3))
+        .to
+        .be
+        .revertedWith("You have to pay the token price");
+      });
 
     });
 
