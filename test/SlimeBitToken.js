@@ -1,4 +1,5 @@
 const {expect} = require('chai');
+const provider = waffle.provider;
 
 describe('Slime Token Contract', ()=> {
   // contract interaction variables
@@ -71,10 +72,19 @@ describe('Slime Token Contract', ()=> {
 
       it("Should require a payment of total mint tokens if sender is not the owner", async ()=> {
         const mintCost = await token.cost();
+        let tx, result;
+
         await expect(token.connect(addr1).mint(3))
         .to
         .be
         .revertedWith("You have to pay the token price");
+
+        // transaction response (may not be included in the blockchain yet
+        tx = await token.connect(addr1).mint(3, {value: mintCost.mul(3)});
+        // wait until the transaction is confirmed
+        result = await tx.wait();
+        expect(result.status).to.equal(1);
+        expect(await provider.getBalance(token.address)).to.equal(mintCost.mul(3));
       });
 
     });
