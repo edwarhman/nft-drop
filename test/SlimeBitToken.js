@@ -27,27 +27,45 @@ describe('Slime Token Contract', ()=> {
     });
   });
 
-  describe("Only Owner functions", ()=> {
-    xit("Should retrive if a not owner addrress try to call these functions", async ()=> {
+  describe("Public functions", ()=> {
+    describe("Mint function assertions", ()=> {
+
+      it("Should mint a new Token", async ()=> {
+
+      });
+
+    });
+
+    describe("Wallet of Owner function assertions", ()=> {
+
+      it("Should return the specified address wallet", async ()=> {
+
+      });
+      
+    });
+  });
+
+  xdescribe("Only Owner functions", ()=> {
+    it("Should retrive if a not owner addrress try to call these functions", async ()=> {
       await expect(token.connect(addr1).setCost(10000))
       .to
       .be
       .revertedWith("");
     });
 
-    xit("Should set the state to revealed", async ()=> {
+    it("Should set the state to revealed", async ()=> {
       expect(await token.revealed()).to.equal(false);
       await token.reveal();
       expect(await token.revealed()).to.equal(true);
     });
 
-    xit("Should change the NFT cost", async ()=> {
+    it("Should change the NFT cost", async ()=> {
       const newCost = ethers.utils.parseEther("0.5");
       await token.setCost(newCost);
       expect(await token.cost()).to.equal(newCost);
     });
 
-    xit("Should change the max mint amount", async ()=> {
+    it("Should change the max mint amount", async ()=> {
       const newMaxMintAmount = 4;
       await token.setMaxMintAmount(newMaxMintAmount);
       expect(await token.maxMintAmountPerTx()).to.equal(newMaxMintAmount);
