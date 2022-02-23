@@ -72,7 +72,7 @@ contract SlimeBitToken is ERC721, Ownable {
 				tokensIds[gotTokens] = id;
 				gotTokens++; 
 			}
-			i++;
+			id++;
 		}
 		return tokensIds;
 	}
