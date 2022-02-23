@@ -30,8 +30,33 @@ describe('Slime Token Contract', ()=> {
   describe("Public functions", ()=> {
     describe("Mint function assertions", ()=> {
 
-      it("Should mint a new Token", async ()=> {
+      beforeEach(async ()=> {
+        await token.pause(false);
+      });
 
+      it("Should mint a new Token", async ()=> {
+        const mintAmount = 3;
+        const initialSupply = await token.supply();
+        await token.mint(mintAmount);
+
+        expect(await token.ownerOf(1)).to.equal(owner.address);
+        expect(await token.balanceOf(owner.address)).to.equal(mintAmount);
+        expect(await token.supply()).to.equal(initialSupply + mintAmount);
+      });
+
+      it("Should not allow to  mint if the contract is paused", async ()=> {
+        await token.pause(true);
+        await expect(token.mint(3))
+        .to
+        .be
+        .revertedWith("Drop is paused");
+      });
+
+      it("Should require at least an amount of one token to mint", async ()=> {
+        await expect(token.mint(0))
+        .to
+        .be
+        .revertedWith("You need to specify an amount of tokens to mint");
       });
 
     });
