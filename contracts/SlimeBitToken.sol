@@ -42,7 +42,7 @@ contract SlimeBitToken is ERC721, Ownable {
 		require(!paused, "Drop is paused");
 		require(
 			_mintAmount > 0,
-			"You need to specify an amount of tokens to mint"
+			"You need to specify at least an amount of one token to mint"
 		);
 		require(
 			supply + _mintAmount <= maxSupply,

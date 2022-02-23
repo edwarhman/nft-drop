@@ -56,7 +56,7 @@ describe('Slime Token Contract', ()=> {
         await expect(token.mint(0))
         .to
         .be
-        .revertedWith("You need to specify an amount of tokens to mint");
+        .revertedWith("You need to specify at least an amount of one token to mint");
       });
 
     });
