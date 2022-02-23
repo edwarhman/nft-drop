@@ -27,4 +27,19 @@ describe('Slime Token Contract', ()=> {
     });
   });
 
+  describe("Only Owner functions", ()=> {
+    it("Should retrive if a not owner addrress try to call these functions", async ()=> {
+      await expect(token.connect(addr1).setCost(10000))
+      .to
+      .be
+      .revertedWith("");
+    });
+
+    it("Should set the state to revealed", async ()=> {
+      expect(await token.revealed()).to.equal(false);
+      await token.reveal();
+      expect(await token.revealed()).to.equal(true);
+    });
+  });
+
 });
