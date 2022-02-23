@@ -41,13 +41,13 @@ contract SlimeBitToken is ERC721, Ownable {
 	function mint(uint _mintAmount) public payable onlyOwner {
 		require(!paused);
 		require(_mintAmount > 0);
-		require(supply + _mintAmount <= maxSupply)
+		require(supply + _mintAmount <= maxSupply);
 		require(_mintAmount < maxMintAmountPerTx, "You cannot exceeds the max mint amount.");
 		if(msg.sender == owner()) {
 			require(msg.value >= cost * _mintAmount);
 		}
 
-		for(uint i = 1, i <= _mintAmount; i++) {
+		for(uint i = 1; i <= _mintAmount; i++) {
 			_safeMint(msg.sender, supply + i);
 		}
 
