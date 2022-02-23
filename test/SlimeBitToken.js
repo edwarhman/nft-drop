@@ -15,7 +15,7 @@ describe('Slime Token Contract', ()=> {
     [owner, addr1, addr2, _] = await ethers.getSigners();
   });
 
-  describe("Deployment", ()=> {
+  xdescribe("Deployment", ()=> {
     it("should set the right owner", async ()=> {
       expect(await token.owner()).to.equal(owner.address);
     });
@@ -28,17 +28,41 @@ describe('Slime Token Contract', ()=> {
   });
 
   describe("Only Owner functions", ()=> {
-    it("Should retrive if a not owner addrress try to call these functions", async ()=> {
+    xit("Should retrive if a not owner addrress try to call these functions", async ()=> {
       await expect(token.connect(addr1).setCost(10000))
       .to
       .be
       .revertedWith("");
     });
 
-    it("Should set the state to revealed", async ()=> {
+    xit("Should set the state to revealed", async ()=> {
       expect(await token.revealed()).to.equal(false);
       await token.reveal();
       expect(await token.revealed()).to.equal(true);
+    });
+
+    xit("Should change the NFT cost", async ()=> {
+      const newCost = ethers.utils.parseEther("0.5");
+      await token.setCost(newCost);
+      expect(await token.cost()).to.equal(newCost);
+    });
+
+    xit("Should change the max mint amount", async ()=> {
+      const newMaxMintAmount = 4;
+      await token.setMaxMintAmount(newMaxMintAmount);
+      expect(await token.maxMintAmountPerTx()).to.equal(newMaxMintAmount);
+    });
+
+    it("Should change the not revealed URI", async ()=> {
+      const newUri = "anotherUri";
+      await token.setNotRevealedUri(newUri);
+      expect(await token.notRevealedUri()).to.equal(newUri);
+    });
+
+    it("Should change the paused state", async ()=> {
+      const initialState = await token.paused();
+      await token.pause(!initialState);
+      expect(await token.paused()).to.equal(!initialState);
     });
   });
 
