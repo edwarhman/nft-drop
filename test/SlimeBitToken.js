@@ -20,8 +20,10 @@ describe('Slime Token Contract', ()=> {
       expect(await token.owner()).to.equal(owner.address);
     });
 
-    it("Should set token name, symbol, base URI and not revealed URI property", async ()=> {
-      
+    it("Should set token name, symbol and not revealed URI property", async ()=> {
+      expect(await token.name()).to.equal(name);
+      expect(await token.symbol()).to.equal(symbol);
+      expect(await token.notRevealedUri()).to.equal(notRevealedUri);
     });
   });
 
