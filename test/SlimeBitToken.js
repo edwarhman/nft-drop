@@ -9,8 +9,11 @@ describe('Slime Token Contract', ()=> {
   let baseUri = "";
   let notRevealedUri = "";
 
-  beforeEach(async ()=> {
+  before(async ()=> {
     Token = await ethers.getContractFactory('SlimeBitToken');
+  });
+
+  beforeEach(async ()=> {
     token = await Token.deploy(name, symbol, baseUri, notRevealedUri);
     [owner, addr1, addr2, _] = await ethers.getSigners();
   });
