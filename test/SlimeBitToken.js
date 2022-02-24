@@ -19,7 +19,7 @@ describe('Slime Token Contract', ()=> {
     [owner, addr1, addr2, _] = await ethers.getSigners();
   });
 
-  xdescribe("Deployment", ()=> {
+  describe("Deployment", ()=> {
     it("should set the right owner", async ()=> {
       expect(await token.owner()).to.equal(owner.address);
     });
@@ -92,13 +92,25 @@ describe('Slime Token Contract', ()=> {
     describe("Wallet of Owner function assertions", ()=> {
 
       it("Should return the specified address wallet", async ()=> {
+        const expectedIds = ['1', '2', '3', '4'];
+        const mintCost = await token.cost();
+        let wallet;
+        
+        await token.connect(addr1).mint(4, {value: mintCost.mul(4)});
+        wallet = await token.walletOfOwner(addr1.address)
+        wallet = wallet.map(el => el.toString());
+        // arrays are different pointers so we need to use deep
+        expect(wallet).to.deep.equal(expectedIds);
+      });
 
+      it("Should return an empty array when sender is not a owner", async ()=> {
+        expect(await token.walletOfOwner(addr1.address)).to.deep.equal([]);
       });
       
     });
   });
 
-  xdescribe("Only Owner functions", ()=> {
+  describe("Only Owner functions", ()=> {
     it("Should retrive if a not owner addrress try to call these functions", async ()=> {
       await expect(token.connect(addr1).setCost(10000))
       .to
