@@ -31,7 +31,7 @@ describe('Slime Token Contract', ()=> {
     });
   });
 
-  xdescribe("Public functions", ()=> {
+  describe("Public functions", ()=> {
     describe("Mint function assertions", ()=> {
 
       beforeEach(async ()=> {
@@ -108,6 +108,42 @@ describe('Slime Token Contract', ()=> {
       });
       
     });
+
+    describe("tokenURI function assertions", ()=> {
+      it("Should reject if the token ID does not exist", async ()=> {
+          await expect(token.tokenURI(3))
+          .to
+          .be
+          .revertedWith("ERC721Metadata: URI query for nonexistent token");
+      });
+
+      it("Should return not revealed uri if revealed status is false", async ()=> {
+        await token.mint(1);
+        expect(await token.tokenURI(1))
+        .to
+        .equal(await token.notRevealedUri());
+      });
+
+      it("Should retrieve an empty string because tokenUri is empty", async ()=> {
+        await token.mint(1);
+        await token.reveal();
+        expect(await token.tokenURI(1))
+        .to
+        .equal("");
+      });
+
+      it("Should return the token URI property", async ()=> {
+        let notBlankUri = "myUri/abc/";
+        let baseExtension = await token.baseExtension();
+        await token.setBaseUri(notBlankUri);
+        await token.mint(1);
+        await token.reveal();
+
+        expect(await token.tokenURI(1))
+        .to
+        .equal(notBlankUri + 1 + baseExtension);
+      });
+    });
   });
 
   describe("Only Owner functions", ()=> {
@@ -142,7 +178,7 @@ describe('Slime Token Contract', ()=> {
       expect(await token.notRevealedUri()).to.equal(newUri);
     });
 
-    it("Should change the base URI", async ()=> {
+    xit("Should change the base URI", async ()=> {
       let tx;
       tx = await token.setBaseUri("New URI");
       tx = await tx.wait();
