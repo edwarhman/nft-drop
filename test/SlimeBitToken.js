@@ -20,25 +20,25 @@ describe('Slime Token Contract', ()=> {
   });
 
   xdescribe("Deployment", ()=> {
-    it("should set the right owner", async ()=> {
+    xit("should set the right owner", async ()=> {
       expect(await token.owner()).to.equal(owner.address);
     });
 
-    it("Should set token name, symbol and not revealed URI property", async ()=> {
+    xit("Should set token name, symbol and not revealed URI property", async ()=> {
       expect(await token.name()).to.equal(name);
       expect(await token.symbol()).to.equal(symbol);
       expect(await token.notRevealedUri()).to.equal(notRevealedUri);
     });
   });
 
-  xdescribe("Public functions", ()=> {
+  describe("Public functions", ()=> {
     describe("Mint function assertions", ()=> {
 
       beforeEach(async ()=> {
         await token.pause(false);
       });
 
-      it("Should mint a new Token", async ()=> {
+      xit("Should mint a new Token", async ()=> {
         const mintAmount = 3;
         const initialSupply = await token.supply();
         await token.mint(mintAmount);
@@ -48,7 +48,7 @@ describe('Slime Token Contract', ()=> {
         expect(await token.supply()).to.equal(initialSupply + mintAmount);
       });
 
-      it("Should not allow to  mint if the contract is paused", async ()=> {
+      xit("Should not allow to  mint if the contract is paused", async ()=> {
         await token.pause(true);
         await expect(token.mint(3))
         .to
@@ -56,21 +56,21 @@ describe('Slime Token Contract', ()=> {
         .revertedWith("Drop is paused");
       });
 
-      it("Should require at least an amount of one token to mint", async ()=> {
+      xit("Should require at least an amount of one token to mint", async ()=> {
         await expect(token.mint(0))
         .to
         .be
         .revertedWith("You need to specify at least an amount of one token to mint");
       });
       
-      it("Should not allow exceeding the maximum mint operations allowed per transaction", async ()=> {
+      xit("Should not allow exceeding the maximum mint operations allowed per transaction", async ()=> {
         await expect(token.mint(15))
         .to
         .be
         .revertedWith("You cannot exceeds the max mint amount.");
       });
 
-      it("Should require a payment of total mint tokens if sender is not the owner", async ()=> {
+      xit("Should require a payment of total mint tokens if sender is not the owner", async ()=> {
         const mintCost = await token.cost();
         let tx, result;
 
@@ -91,7 +91,7 @@ describe('Slime Token Contract', ()=> {
 
     describe("Wallet of Owner function assertions", ()=> {
 
-      it("Should return the specified address wallet", async ()=> {
+      xit("Should return the specified address wallet", async ()=> {
         const expectedIds = ['1', '2', '3', '4'];
         const mintCost = await token.cost();
         let wallet;
@@ -103,52 +103,95 @@ describe('Slime Token Contract', ()=> {
         expect(wallet).to.deep.equal(expectedIds);
       });
 
-      it("Should return an empty array when sender is not a owner", async ()=> {
+      xit("Should return an empty array when sender is not a owner", async ()=> {
         expect(await token.walletOfOwner(addr1.address)).to.deep.equal([]);
       });
       
     });
+
+    describe("tokenURI function assertions", ()=> {
+      it("Should reject if the token ID does not exist", async ()=> {
+          await expect(token.tokenURI(3))
+          .to
+          .be
+          .revertedWith("ERC721Metadata: URI query for nonexistent token");
+      });
+
+      it("Should return not revealed uri if revealed status is false", async ()=> {
+        await token.mint(1);
+        expect(await token.tokenURI(1))
+        .to
+        .equal(await token.notRevealedUri());
+      });
+
+      it("Should retrieve an empty string because tokenUri is empty", async ()=> {
+        await token.mint(1);
+        await token.reveal();
+        expect(await token.tokenURI(1))
+        .to
+        .equal("");
+      });
+
+      it("Should return the token URI property", async ()=> {
+        let notBlankUri = "myUri/abc/";
+        let baseExtension = await token.baseExtension();
+        await token.setBaseUri(notBlankUri);
+        await token.mint(1);
+        await token.reveal();
+
+        expect(await token.tokenURI(1))
+        .to
+        .equal(notBlankUri + 1 + baseExtension);
+      });
+    });
   });
 
   describe("Only Owner functions", ()=> {
-    it("Should retrive if a not owner addrress try to call these functions", async ()=> {
+    xit("Should retrive if a not owner addrress try to call these functions", async ()=> {
       await expect(token.connect(addr1).setCost(10000))
       .to
       .be
       .revertedWith("");
     });
 
-    it("Should set the state to revealed", async ()=> {
+    xit("Should set the state to revealed", async ()=> {
       expect(await token.revealed()).to.equal(false);
       await token.reveal();
       expect(await token.revealed()).to.equal(true);
     });
 
-    it("Should change the NFT cost", async ()=> {
+    xit("Should change the NFT cost", async ()=> {
       const newCost = ethers.utils.parseEther("0.5");
       await token.setCost(newCost);
       expect(await token.cost()).to.equal(newCost);
     });
 
-    it("Should change the max mint amount", async ()=> {
+    xit("Should change the max mint amount", async ()=> {
       const newMaxMintAmount = 4;
       await token.setMaxMintAmount(newMaxMintAmount);
       expect(await token.maxMintAmountPerTx()).to.equal(newMaxMintAmount);
     });
 
-    it("Should change the not revealed URI", async ()=> {
+    xit("Should change the not revealed URI", async ()=> {
       const newUri = "anotherUri";
       await token.setNotRevealedUri(newUri);
       expect(await token.notRevealedUri()).to.equal(newUri);
     });
 
-    it("Should change the paused state", async ()=> {
+    xit("Should change the base URI", async ()=> {
+      let tx;
+      tx = await token.setBaseUri("New URI");
+      tx = await tx.wait();
+      expect(tx.status).to.equal(1);
+    });
+
+    xit("Should change the paused state", async ()=> {
       const initialState = await token.paused();
       await token.pause(!initialState);
       expect(await token.paused()).to.equal(!initialState);
     });
 
-    it("Should let the owner to withdraw contract funds", async ()=> {
+    xit("Should let the owner to withdraw contract funds", async ()=> {
       let mintCost = await token.cost();
       let ownerBalance = await provider.getBalance(owner.address);
       let contractBalance;
