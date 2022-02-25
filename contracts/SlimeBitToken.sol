@@ -96,7 +96,7 @@ contract SlimeBitToken is ERC721, Ownable {
 	///@notice Burn a given Token (Nobody can own the token after this operation)
 	///@dev Only the token owner can burn it
 	///@param tokenId TOKEN to burn 
-	function burn(uint tokenId) {
+	function burn(uint tokenId) public {
 		require(
      		_exists(tokenId),
      		"The specified token does not exist"
