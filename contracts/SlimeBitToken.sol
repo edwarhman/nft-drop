@@ -26,8 +26,7 @@ contract SlimeBitToken is AccessControl, ERC721, Ownable {
 	uint public maxSupply = 1000;
 	///@notice Max amount of token permited to mint per transaction
 	uint public maxMintAmountPerTx = 10;
-	///@notice Indicates if the passed address is in the whitelist
-	mapping (address => bool) public whitelistMember;
+
 	//access variables
 	///@notice role required to mint new tokens
 	bytes32 public constant MINTER = keccak256("MINTER");
@@ -97,42 +96,6 @@ contract SlimeBitToken is AccessControl, ERC721, Ownable {
 
 		supply += _mintAmount;
 	}
-
-	///@notice Allows the whitelist member to mint a new token if it's possible.
-	///@param _mintAmount Specify the amount of tokens to mind,
-	///cannot exceed the max mint amount permited by transaction
-	///@dev It rejects if doing the operation exceeds the maximum token amount
-	function mintWhitelist(uint _mintAmount) public payable {
-		require(whiteListActive, "whitelist mints are not active");
-		require(
-			whitelistMember[msg.sender] == true,
-			"You are not in the whitelist to mint tokens");
-		require(
-			_mintAmount > 0,
-			"You need to specify at least an amount of one token to mint"
-		);
-		require(
-			supply + _mintAmount <= maxSupply,
-			"You cannot mint more tokens than the maximum supply expected"
-		);
-		require(
-			_mintAmount < maxMintAmountPerTx,
-			"You cannot exceeds the max mint amount."
-		);
-		if(msg.sender != owner()) {
-			require(
-				msg.value >= cost * _mintAmount,
-				"You have to pay the token price"
-			);
-		}
-
-		for(uint i = 1; i <= _mintAmount; i++) {
-			_safeMint(msg.sender, supply + i);
-		}
-
-		supply += _mintAmount;
-	}
-
 
 	///@notice Gets all the tokens in the specified address wallet
 	///@param _owner Address that have the tokens
@@ -232,16 +195,6 @@ contract SlimeBitToken is AccessControl, ERC721, Ownable {
 	function withdraw() public payable onlyRole(ADMIN) {
 		(bool os,) = payable(owner()).call{value : address(this).balance}("");
 	}
-
-	///@notice add a new address to the whitelist
-	function addToWhitelist(address newMember) public onlyOwner {
-		whitelistMember[newMember] = true;
-	}
-
-	///function remove an address from the whitelist
-	function removeFromWhitelist(address member) public onlyOwner {
-		whitelistMember[member] = false;
-	} 
 
 	function setWhitelistStatus(bool _newState) public onlyRole(ADMIN) {
 		whiteListActive = _newState;
