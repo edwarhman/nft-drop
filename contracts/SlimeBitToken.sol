@@ -2,10 +2,11 @@ pragma solidity >= 0.7.0 < 0.9.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "hardhat/console.sol";
 
-contract SlimeBitToken is ERC721, Ownable {
+contract SlimeBitToken is AccessControl, ERC721, Ownable {
 	///@notice cost of each token
 	uint public cost = 0.01 ether;
 	string baseUri;
@@ -27,6 +28,11 @@ contract SlimeBitToken is ERC721, Ownable {
 	uint public maxMintAmountPerTx = 10;
 	///@notice Indicates if the passed address is in the whitelist
 	mapping (address => bool) public whitelistMember;
+	//access variables
+	///@notice role required to mint new tokens
+	bytes32 public constant MINTER = keccak256("MINTER");
+	///@notice Role required to manipulate admin functions
+	bytes32 public constant ADMIN = keccak256("ADMIN");
 
 	constructor (
 		string memory _name,
@@ -37,7 +43,18 @@ contract SlimeBitToken is ERC721, Ownable {
 	) ERC721(_name, _symbol) Ownable() {
 		baseUri = _baseUri;
 		notRevealedUri = _notRevealedUri;
+		_setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
 	}
+
+	///@dev necessary override in order to use both ERC721 and AccessControl
+	function supportsInterface(bytes4 interfaceId)
+	public
+	view
+	virtual
+	override(ERC721, AccessControl)
+	returns (bool) {
+        return super.supportsInterface(interfaceId);
+    }
 
 	// public functions
 
