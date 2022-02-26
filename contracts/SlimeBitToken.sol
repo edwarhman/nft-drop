@@ -2,10 +2,11 @@ pragma solidity >= 0.7.0 < 0.9.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "hardhat/console.sol";
 
-contract SlimeBitToken is ERC721, Ownable {
+contract SlimeBitToken is AccessControl, ERC721, Ownable {
 	///@notice cost of each token
 	uint public cost = 0.01 ether;
 	string baseUri;
@@ -25,8 +26,12 @@ contract SlimeBitToken is ERC721, Ownable {
 	uint public maxSupply = 1000;
 	///@notice Max amount of token permited to mint per transaction
 	uint public maxMintAmountPerTx = 10;
-	///@notice Indicates if the passed address is in the whitelist
-	mapping (address => bool) public whitelistMember;
+
+	//access variables
+	///@notice role required to mint new tokens
+	bytes32 public constant MINTER = keccak256("MINTER");
+	///@notice Role required to manipulate admin functions
+	bytes32 public constant ADMIN = keccak256("ADMIN");
 
 	constructor (
 		string memory _name,
@@ -37,16 +42,36 @@ contract SlimeBitToken is ERC721, Ownable {
 	) ERC721(_name, _symbol) Ownable() {
 		baseUri = _baseUri;
 		notRevealedUri = _notRevealedUri;
+		_setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+		_setupRole(ADMIN, msg.sender);
 	}
+
+	///@dev necessary override in order to use both ERC721 and AccessControl
+	function supportsInterface(bytes4 interfaceId)
+	public
+	view
+	virtual
+	override(ERC721, AccessControl)
+	returns (bool) {
+        return super.supportsInterface(interfaceId);
+    }
 
 	// public functions
 
 	///@notice Allows the sender to mint a new token if it's possible.
 	///@param _mintAmount Specify the amount of tokens to mind,
-	///cannot exceed the max mint amount permited by transaction
+	///		  cannot exceed the max mint amount permited by transaction
 	///@dev It rejects if doing the operation exceeds the maximum token amount
+	///dev if drop is paused and presale is open require the tx sender to be a MINTER 
 	function mint(uint _mintAmount) public payable {
-		require(!paused, "Drop is paused");
+
+		if(paused) {
+			require(whiteListActive, "The token drop and the presale are close");
+			require(
+				hasRole(MINTER, msg.sender),
+				"The token drop is paused and you are not in the presale whitelist"
+			);
+		}
 		require(
 			_mintAmount > 0,
 			"You need to specify at least an amount of one token to mint"
@@ -72,42 +97,6 @@ contract SlimeBitToken is ERC721, Ownable {
 
 		supply += _mintAmount;
 	}
-
-	///@notice Allows the whitelist member to mint a new token if it's possible.
-	///@param _mintAmount Specify the amount of tokens to mind,
-	///cannot exceed the max mint amount permited by transaction
-	///@dev It rejects if doing the operation exceeds the maximum token amount
-	function mintWhitelist(uint _mintAmount) public payable {
-		require(whiteListActive, "whitelist mints are not active");
-		require(
-			whitelistMember[msg.sender] == true,
-			"You are not in the whitelist to mint tokens");
-		require(
-			_mintAmount > 0,
-			"You need to specify at least an amount of one token to mint"
-		);
-		require(
-			supply + _mintAmount <= maxSupply,
-			"You cannot mint more tokens than the maximum supply expected"
-		);
-		require(
-			_mintAmount < maxMintAmountPerTx,
-			"You cannot exceeds the max mint amount."
-		);
-		if(msg.sender != owner()) {
-			require(
-				msg.value >= cost * _mintAmount,
-				"You have to pay the token price"
-			);
-		}
-
-		for(uint i = 1; i <= _mintAmount; i++) {
-			_safeMint(msg.sender, supply + i);
-		}
-
-		supply += _mintAmount;
-	}
-
 
 	///@notice Gets all the tokens in the specified address wallet
 	///@param _owner Address that have the tokens
@@ -173,33 +162,33 @@ contract SlimeBitToken is ERC721, Ownable {
 	// only owner functions
 
 	///@notice reveal the smart contract
-	function reveal() public onlyOwner {
+	function reveal() public onlyRole(ADMIN) {
 		revealed = true;
 	}
 
 	///@notice set cost of tokens
 	///@param _newCost The new cost to set
-	function setCost(uint _newCost) public onlyOwner {
+	function setCost(uint _newCost) public onlyRole(ADMIN) {
 			cost = _newCost;
 	}
 
 	///@notice set the maximun mint amount per transaction
-	function setMaxMintAmount(uint _newMaxMinAmount) public onlyOwner {
+	function setMaxMintAmount(uint _newMaxMinAmount) public onlyRole(ADMIN) {
 		maxMintAmountPerTx = _newMaxMinAmount;
 	}
 
 
-	function setNotRevealedUri(string memory _notRevealedUri) public onlyOwner {
+	function setNotRevealedUri(string memory _notRevealedUri) public onlyRole(ADMIN) {
 		notRevealedUri = _notRevealedUri;
 	}
 
-	function setBaseUri(string memory _newBaseUri) public onlyOwner {
+	function setBaseUri(string memory _newBaseUri) public onlyRole(ADMIN) {
 		baseUri = _newBaseUri;
 	}
 
 	///@notice Set the pause state of the nft drop to true or false
 	///@param _newState A bool value that set the drop paused state   
-	function pause(bool _newState) public onlyOwner {
+	function pause(bool _newState) public onlyRole(ADMIN) {
 		paused = _newState;
 	}
 
@@ -208,17 +197,7 @@ contract SlimeBitToken is ERC721, Ownable {
 		(bool os,) = payable(owner()).call{value : address(this).balance}("");
 	}
 
-	///@notice add a new address to the whitelist
-	function addToWhitelist(address newMember) public onlyOwner {
-		whitelistMember[newMember] = true;
-	}
-
-	///function remove an address from the whitelist
-	function removeFromWhitelist(address member) public onlyOwner {
-		whitelistMember[member] = false;
-	} 
-
-	function setWhitelistStatus(bool _newState) public onlyOwner {
+	function setWhitelistStatus(bool _newState) public onlyRole(ADMIN) {
 		whiteListActive = _newState;
 	}
 }
