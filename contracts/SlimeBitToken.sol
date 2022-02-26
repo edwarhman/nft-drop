@@ -192,7 +192,7 @@ contract SlimeBitToken is AccessControl, ERC721, Ownable {
 	}
 
 	///@notice let the contract owner to withdraw the funds
-	function withdraw() public payable onlyRole(ADMIN) {
+	function withdraw() public payable onlyOwner {
 		(bool os,) = payable(owner()).call{value : address(this).balance}("");
 	}
 
