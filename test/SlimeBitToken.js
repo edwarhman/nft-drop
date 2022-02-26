@@ -89,7 +89,7 @@ describe('Slime Token Contract', ()=> {
 
     });
 
-    describe("Wallet of Owner function assertions", ()=> {
+    xdescribe("Wallet of Owner function assertions", ()=> {
 
       xit("Should return the specified address wallet", async ()=> {
         const expectedIds = ['1', '2', '3', '4'];
@@ -109,7 +109,7 @@ describe('Slime Token Contract', ()=> {
       
     });
 
-    describe("tokenURI function assertions", ()=> {
+    xdescribe("tokenURI function assertions", ()=> {
       it("Should reject if the token ID does not exist", async ()=> {
           await expect(token.tokenURI(3))
           .to
@@ -142,6 +142,47 @@ describe('Slime Token Contract', ()=> {
         expect(await token.tokenURI(1))
         .to
         .equal(notBlankUri + 1 + baseExtension);
+      });
+    });
+
+    describe("Burn token function assertions", ()=> {
+      it("Should not allow to burn tokens that do not exist or that do not belong to the sender", async ()=> {
+        await
+        expect(token.burn(1))
+        .to
+        .be
+        .revertedWith("The specified token does not exist");
+        
+        await token.mint(1);
+        await
+          expect(token.connect(addr1).burn(1))
+        .to
+        .be
+        .revertedWith("You can only burn tokens that belong to you");
+      });
+
+      it("Should burn a token", async ()=> {
+        let prevBurnBalance, prevBurnSupply;
+
+        await token.mint(1);
+        prevBurnBalance = await token.balanceOf(owner.address);
+        prevBurnSupply = await token.supply();
+
+        await token.burn(1);
+        await 
+          expect(token.ownerOf(1))
+        .to
+        .be
+        .revertedWith("ERC721: owner query for nonexistent token");
+        
+        expect(await token.balanceOf(owner.address))
+        .to
+        .equal(prevBurnBalance - 1);
+
+        expect(await token.supply())
+        .to
+        .equal(prevBurnSupply - 1);
+        
       });
     });
   });
