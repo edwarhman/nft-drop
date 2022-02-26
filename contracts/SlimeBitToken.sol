@@ -44,6 +44,7 @@ contract SlimeBitToken is AccessControl, ERC721, Ownable {
 		baseUri = _baseUri;
 		notRevealedUri = _notRevealedUri;
 		_setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+		_setupRole(ADMIN, msg.sender);
 	}
 
 	///@dev necessary override in order to use both ERC721 and AccessControl
@@ -197,38 +198,38 @@ contract SlimeBitToken is AccessControl, ERC721, Ownable {
 	// only owner functions
 
 	///@notice reveal the smart contract
-	function reveal() public onlyOwner {
+	function reveal() public onlyRole(ADMIN) {
 		revealed = true;
 	}
 
 	///@notice set cost of tokens
 	///@param _newCost The new cost to set
-	function setCost(uint _newCost) public onlyOwner {
+	function setCost(uint _newCost) public onlyRole(ADMIN) {
 			cost = _newCost;
 	}
 
 	///@notice set the maximun mint amount per transaction
-	function setMaxMintAmount(uint _newMaxMinAmount) public onlyOwner {
+	function setMaxMintAmount(uint _newMaxMinAmount) public onlyRole(ADMIN) {
 		maxMintAmountPerTx = _newMaxMinAmount;
 	}
 
 
-	function setNotRevealedUri(string memory _notRevealedUri) public onlyOwner {
+	function setNotRevealedUri(string memory _notRevealedUri) public onlyRole(ADMIN) {
 		notRevealedUri = _notRevealedUri;
 	}
 
-	function setBaseUri(string memory _newBaseUri) public onlyOwner {
+	function setBaseUri(string memory _newBaseUri) public onlyRole(ADMIN) {
 		baseUri = _newBaseUri;
 	}
 
 	///@notice Set the pause state of the nft drop to true or false
 	///@param _newState A bool value that set the drop paused state   
-	function pause(bool _newState) public onlyOwner {
+	function pause(bool _newState) public onlyRole(ADMIN) {
 		paused = _newState;
 	}
 
 	///@notice let the contract owner to withdraw the funds
-	function withdraw() public payable onlyOwner {
+	function withdraw() public payable onlyRole(ADMIN) {
 		(bool os,) = payable(owner()).call{value : address(this).balance}("");
 	}
 
@@ -242,7 +243,7 @@ contract SlimeBitToken is AccessControl, ERC721, Ownable {
 		whitelistMember[member] = false;
 	} 
 
-	function setWhitelistStatus(bool _newState) public onlyOwner {
+	function setWhitelistStatus(bool _newState) public onlyRole(ADMIN) {
 		whiteListActive = _newState;
 	}
 }
