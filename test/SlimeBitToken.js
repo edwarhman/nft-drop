@@ -282,6 +282,23 @@ describe('Slime Token Contract', ()=> {
       expect(await provider.getBalance(owner.address)).to.equal(newBalance);
       expect(await provider.getBalance(token.address)).to.equal(0);
     });
+
+    it("Should let the owner to add an address to the whitelist", async ()=> {
+      await token.addToWhitelist(addr1.address);
+      expect(await token.whitelistMember(addr1.address)).to.equal(true);
+    })
+
+    it("Should let the owner to remove an address from the whitelist", async ()=> {
+      await token.addToWhitelist(addr1.address);
+      await token.removeFromWhitelist(addr1.address);
+      expect(await token.whitelistMember(addr1.address)).to.equal(false);
+    })
+
+    it("Should let the owner to set the whitelist status", async ()=> {
+      await token.setWhitelistStatus(true);
+
+      expect(await token.whiteListActive()).to.equal(true);
+    })
   });
 
 });
