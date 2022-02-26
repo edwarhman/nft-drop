@@ -17,13 +17,16 @@ contract SlimeBitToken is ERC721, Ownable {
 	bool public paused = false;
 	///@notice Indicates if the drop has already been revealed 
 	bool public revealed = false;
+	///@notice Indicate if whiteList is active
+	bool public whiteListActive = false;
 	///@notice The minted tokens total supply
 	uint public supply;
 	///@notice Max amount of token permited to mint
 	uint public maxSupply = 1000;
 	///@notice Max amount of token permited to mint per transaction
 	uint public maxMintAmountPerTx = 10;
-
+	///@notice Indicates if the passed address is in the whitelist
+	mapping (address => bool) public whitelistMember;
 
 	constructor (
 		string memory _name,
@@ -44,6 +47,41 @@ contract SlimeBitToken is ERC721, Ownable {
 	///@dev It rejects if doing the operation exceeds the maximum token amount
 	function mint(uint _mintAmount) public payable {
 		require(!paused, "Drop is paused");
+		require(
+			_mintAmount > 0,
+			"You need to specify at least an amount of one token to mint"
+		);
+		require(
+			supply + _mintAmount <= maxSupply,
+			"You cannot mint more tokens than the maximum supply expected"
+		);
+		require(
+			_mintAmount < maxMintAmountPerTx,
+			"You cannot exceeds the max mint amount."
+		);
+		if(msg.sender != owner()) {
+			require(
+				msg.value >= cost * _mintAmount,
+				"You have to pay the token price"
+			);
+		}
+
+		for(uint i = 1; i <= _mintAmount; i++) {
+			_safeMint(msg.sender, supply + i);
+		}
+
+		supply += _mintAmount;
+	}
+
+	///@notice Allows the whitelist member to mint a new token if it's possible.
+	///@param _mintAmount Specify the amount of tokens to mind,
+	///cannot exceed the max mint amount permited by transaction
+	///@dev It rejects if doing the operation exceeds the maximum token amount
+	function mintWhitelist(uint _mintAmount) public payable {
+		require(whiteListActive, "whitelist mints are not active");
+		require(
+			whitelistMember[msg.sender] == true,
+			"You are not in the whitelist to mint tokens");
 		require(
 			_mintAmount > 0,
 			"You need to specify at least an amount of one token to mint"
@@ -168,5 +206,19 @@ contract SlimeBitToken is ERC721, Ownable {
 	///@notice let the contract owner to withdraw the funds
 	function withdraw() public payable onlyOwner {
 		(bool os,) = payable(owner()).call{value : address(this).balance}("");
+	}
+
+	///@notice add a new address to the whitelist
+	function addToWhitelist(address newMember) public onlyOwner {
+		whitelistMember[newMember] = true;
+	}
+
+	///function remove an address from the whitelist
+	function removeFromWhitelist(address member) public onlyOwner {
+		whitelistMember[member] = false;
+	} 
+
+	function setWhitelistStatus(bool _newState) public onlyOwner {
+		whiteListActive = _newState;
 	}
 }
