@@ -63,7 +63,14 @@ contract SlimeBitToken is AccessControl, ERC721, Ownable {
 	///cannot exceed the max mint amount permited by transaction
 	///@dev It rejects if doing the operation exceeds the maximum token amount
 	function mint(uint _mintAmount) public payable {
-		require(!paused, "Drop is paused");
+
+		if(paused) {
+			require(whiteListActive, "The token drop and the presale are close");
+			require(
+				hasRole(MINTER, msg.sender),
+				"The token drop is paused and you are not in the presale whitelist"
+			);
+		}
 		require(
 			_mintAmount > 0,
 			"You need to specify at least an amount of one token to mint"
