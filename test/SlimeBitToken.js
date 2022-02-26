@@ -31,7 +31,7 @@ describe('Slime Token Contract', ()=> {
     });
   });
 
-  describe("Public functions", ()=> {
+  xdescribe("Public functions", ()=> {
     describe("Mint function assertions", ()=> {
 
       beforeEach(async ()=> {
@@ -249,13 +249,21 @@ describe('Slime Token Contract', ()=> {
     });
   });
 
-  xdescribe("Only Owner functions", ()=> {
-    it("Should retrive if a not owner addrress try to call these functions", async ()=> {
+  describe("Only ADMIN functions", ()=> {
+    it("Should retrive if a not ADMIN addrress try to call these functions", async ()=> {
       await expect(token.connect(addr1).setCost(10000))
       .to
       .be
       .revertedWith("");
     });
+
+    it("Should allow an ADMIN other than the owner to do ADMIN OPERATIONS", async()=> {
+      const adminHex = await token.ADMIN();
+      await token.grantRole(adminHex, addr1.address);
+      expect(await token.revealed()).to.equal(false);
+      await token.connect(addr1).reveal();
+      expect(await token.revealed()).to.equal(true);
+    })
 
     it("Should set the state to revealed", async ()=> {
       expect(await token.revealed()).to.equal(false);
