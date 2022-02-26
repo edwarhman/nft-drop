@@ -116,41 +116,6 @@ describe('Slime Token Contract', ()=> {
 
     });
 
-    xdescribe("mint on whitelist presale function assertions", async ()=> {
-      let mintCost;
-
-      beforeEach(async ()=> {
-        mintCost = await token.cost();
-      })
-
-      it("Should mint a new token using mintWhitelist function", async ()=> {
-        await token.addToWhitelist(addr1.address);
-        await token.setWhitelistStatus(true);
-        await token.connect(addr1).mintWhitelist(1, {value: mintCost});
-
-        expect(await token.ownerOf(1)).to.equal(addr1.address);
-        expect(await token.balanceOf(addr1.address)).to.equal(1);
-        expect(await token.supply()).to.equal(1);
-      });
-
-      it("Should not allow to  mint if the whitelist is not active", async ()=> {
-        await token.addToWhitelist(addr1.address);
-        await expect(token.connect(addr1).mintWhitelist(1, {value: mintCost}))
-        .to
-        .be
-        .revertedWith("whitelist mints are not active");
-      });
-
-      it("Should not allow to mint if the sender is not in the whitelist", async ()=> {
-        await token.setWhitelistStatus(true);
-        await 
-          expect(token.connect(addr1).mintWhitelist(1, {value: mintCost}))
-          .to
-          .be
-          .revertedWith("You are not in the whitelist to mint tokens");
-      });
-    });
-
     xdescribe("Wallet of Owner function assertions", ()=> {
 
       xit("Should return the specified address wallet", async ()=> {
@@ -317,17 +282,6 @@ describe('Slime Token Contract', ()=> {
       expect(await provider.getBalance(owner.address)).to.equal(newBalance);
       expect(await provider.getBalance(token.address)).to.equal(0);
     });
-
-    it("Should let the owner to add an address to the whitelist", async ()=> {
-      await token.addToWhitelist(addr1.address);
-      expect(await token.whitelistMember(addr1.address)).to.equal(true);
-    })
-
-    it("Should let the owner to remove an address from the whitelist", async ()=> {
-      await token.addToWhitelist(addr1.address);
-      await token.removeFromWhitelist(addr1.address);
-      expect(await token.whitelistMember(addr1.address)).to.equal(false);
-    })
 
     it("Should let the owner to set the whitelist status", async ()=> {
       await token.setWhitelistStatus(true);
