@@ -60,8 +60,9 @@ contract SlimeBitToken is AccessControl, ERC721, Ownable {
 
 	///@notice Allows the sender to mint a new token if it's possible.
 	///@param _mintAmount Specify the amount of tokens to mind,
-	///cannot exceed the max mint amount permited by transaction
+	///		  cannot exceed the max mint amount permited by transaction
 	///@dev It rejects if doing the operation exceeds the maximum token amount
+	///dev if drop is paused and presale is open require the tx sender to be a MINTER 
 	function mint(uint _mintAmount) public payable {
 
 		if(paused) {
