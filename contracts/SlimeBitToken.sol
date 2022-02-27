@@ -27,7 +27,8 @@ contract SlimeBitToken is AccessControl, ERC721, Ownable {
 	uint public maxSupply = 1000;
 	///@notice Max amount of token permited to mint per transaction
 	uint public maxMintAmountPerTx = 10;
-	address ERC20TokenAddress;
+	///@notice address to ERC20 Token contract
+	address public ERC20TokenAddress;
 
 	//access variables
 	///@notice role required to mint new tokens
@@ -208,5 +209,3 @@ contract SlimeBitToken is AccessControl, ERC721, Ownable {
 		ERC20TokenAddress = _ERC20TokenAddress;
 	}
 }
-
-	
