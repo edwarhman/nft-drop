@@ -35,5 +35,13 @@ describe("ERC20Token contract", ()=> {
 		expect(await token.totalSupply())
 		.to
 		.equal(initialSupply.add(30));
-	})
+	});
+
+	it("Should allow to burn tokens", async ()=> {
+		let initialSupply = await token.totalSupply();
+		await token.burn(30);
+		expect(await token.totalSupply())
+		.to
+		.equal(initialSupply.sub(30));
+	});
 });
