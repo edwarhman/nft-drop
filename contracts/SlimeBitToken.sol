@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "hardhat/console.sol";
+import "./ERC20Token.sol";
 
 contract SlimeBitToken is AccessControl, ERC721, Ownable {
 	///@notice cost of each token
@@ -26,6 +27,7 @@ contract SlimeBitToken is AccessControl, ERC721, Ownable {
 	uint public maxSupply = 1000;
 	///@notice Max amount of token permited to mint per transaction
 	uint public maxMintAmountPerTx = 10;
+	address ERC20TokenAddress;
 
 	//access variables
 	///@notice role required to mint new tokens
@@ -37,13 +39,14 @@ contract SlimeBitToken is AccessControl, ERC721, Ownable {
 		string memory _name,
 		string memory _symbol,
 		string memory _baseUri,
-		string memory _notRevealedUri
-
+		string memory _notRevealedUri,
+		address _ERC20TokenAddress
 	) ERC721(_name, _symbol) Ownable() {
 		baseUri = _baseUri;
 		notRevealedUri = _notRevealedUri;
 		_setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
 		_setupRole(ADMIN, msg.sender);
+		setERC20TokenAddress(_ERC20TokenAddress);
 	}
 
 	///@dev necessary override in order to use both ERC721 and AccessControl
@@ -200,4 +203,10 @@ contract SlimeBitToken is AccessControl, ERC721, Ownable {
 	function setWhitelistStatus(bool _newState) public onlyRole(ADMIN) {
 		whiteListActive = _newState;
 	}
+
+	function setERC20TokenAddress(address _ERC20TokenAddress) public onlyRole(ADMIN) {
+		ERC20TokenAddress = _ERC20TokenAddress;
+	}
 }
+
+	
