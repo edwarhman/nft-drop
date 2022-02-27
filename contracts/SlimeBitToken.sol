@@ -5,10 +5,13 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "hardhat/console.sol";
+import "./ERC20Token.sol";
 
 contract SlimeBitToken is AccessControl, ERC721, Ownable {
 	///@notice cost of each token
 	uint public cost = 0.01 ether;
+	///@notice cost in Musscoin
+	uint public costInCoin = 4 * 10**18;
 	string baseUri;
 	///@notice Uri that points to the img showed when the NFT are not revealed
 	string public notRevealedUri;
@@ -26,6 +29,8 @@ contract SlimeBitToken is AccessControl, ERC721, Ownable {
 	uint public maxSupply = 1000;
 	///@notice Max amount of token permited to mint per transaction
 	uint public maxMintAmountPerTx = 10;
+	///@notice address to ERC20 Token contract
+	address public ERC20TokenAddress;
 
 	//access variables
 	///@notice role required to mint new tokens
@@ -37,13 +42,14 @@ contract SlimeBitToken is AccessControl, ERC721, Ownable {
 		string memory _name,
 		string memory _symbol,
 		string memory _baseUri,
-		string memory _notRevealedUri
-
+		string memory _notRevealedUri,
+		address _ERC20TokenAddress
 	) ERC721(_name, _symbol) Ownable() {
 		baseUri = _baseUri;
 		notRevealedUri = _notRevealedUri;
 		_setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
 		_setupRole(ADMIN, msg.sender);
+		setERC20TokenAddress(_ERC20TokenAddress);
 	}
 
 	///@dev necessary override in order to use both ERC721 and AccessControl
@@ -63,7 +69,7 @@ contract SlimeBitToken is AccessControl, ERC721, Ownable {
 	///		  cannot exceed the max mint amount permited by transaction
 	///@dev It rejects if doing the operation exceeds the maximum token amount
 	///dev if drop is paused and presale is open require the tx sender to be a MINTER 
-	function mint(uint _mintAmount) public payable {
+	function mint(uint _mintAmount, bool payWithExternalToken) public payable {
 
 		if(paused) {
 			require(whiteListActive, "The token drop and the presale are close");
@@ -85,10 +91,15 @@ contract SlimeBitToken is AccessControl, ERC721, Ownable {
 			"You cannot exceeds the max mint amount."
 		);
 		if(msg.sender != owner()) {
-			require(
-				msg.value >= cost * _mintAmount,
-				"You have to pay the token price"
-			);
+			if (payWithExternalToken) {
+				ERC20Token coin = ERC20Token(ERC20TokenAddress);
+				coin.transferFrom(msg.sender, address(this), costInCoin * _mintAmount);
+			} else {
+				require(
+					msg.value >= cost * _mintAmount,
+					"You have to pay the token price"
+				);
+			}
 		}
 
 		for(uint i = 1; i <= _mintAmount; i++) {
@@ -199,5 +210,9 @@ contract SlimeBitToken is AccessControl, ERC721, Ownable {
 
 	function setWhitelistStatus(bool _newState) public onlyRole(ADMIN) {
 		whiteListActive = _newState;
+	}
+
+	function setERC20TokenAddress(address _ERC20TokenAddress) public onlyRole(ADMIN) {
+		ERC20TokenAddress = _ERC20TokenAddress;
 	}
 }
