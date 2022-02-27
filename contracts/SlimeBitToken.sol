@@ -10,6 +10,8 @@ import "./ERC20Token.sol";
 contract SlimeBitToken is AccessControl, ERC721, Ownable {
 	///@notice cost of each token
 	uint public cost = 0.01 ether;
+	///@notice cost in Musscoin
+	uint public costInCoin = 4 * 10**18;
 	string baseUri;
 	///@notice Uri that points to the img showed when the NFT are not revealed
 	string public notRevealedUri;
@@ -67,7 +69,7 @@ contract SlimeBitToken is AccessControl, ERC721, Ownable {
 	///		  cannot exceed the max mint amount permited by transaction
 	///@dev It rejects if doing the operation exceeds the maximum token amount
 	///dev if drop is paused and presale is open require the tx sender to be a MINTER 
-	function mint(uint _mintAmount) public payable {
+	function mint(uint _mintAmount, bool payWithExternalToken) public payable {
 
 		if(paused) {
 			require(whiteListActive, "The token drop and the presale are close");
@@ -89,10 +91,15 @@ contract SlimeBitToken is AccessControl, ERC721, Ownable {
 			"You cannot exceeds the max mint amount."
 		);
 		if(msg.sender != owner()) {
-			require(
-				msg.value >= cost * _mintAmount,
-				"You have to pay the token price"
-			);
+			if (payWithExternalToken) {
+				ERC20Token coin = ERC20Token(ERC20TokenAddress);
+				coin.transferFrom(msg.sender, address(this), costInCoin * _mintAmount);
+			} else {
+				require(
+					msg.value >= cost * _mintAmount,
+					"You have to pay the token price"
+				);
+			}
 		}
 
 		for(uint i = 1; i <= _mintAmount; i++) {
