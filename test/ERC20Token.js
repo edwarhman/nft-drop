@@ -27,5 +27,13 @@ describe("ERC20Token contract", ()=> {
 			.to
 			.equal(symbol);
 		})
+	});
+
+	it("Should allow to mint new tokens", async ()=> {
+		let initialSupply = await token.totalSupply();
+		await token.mint(owner.address, 30);
+		expect(await token.totalSupply())
+		.to
+		.equal(initialSupply.add(30));
 	})
 });
